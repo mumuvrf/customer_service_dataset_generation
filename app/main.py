@@ -5,6 +5,7 @@ import random
 import jsonlines
 import pandas as pd
 from schemas import *
+from typing import List
 
 import getpass
 import os
@@ -32,15 +33,16 @@ def get_model_name(model_name, temperature=0):
         )
     return llm
 
-def generate_service_representatives(llm):
-    prompt = """
-    Generate information about 4 representatives in a service company. \
-    Each representative must have a believable and creatively chosen American name. \
+def generate_service_representative(llm, departments):
+    prompt = f"""
+    Generate information about a representative in a service company. \
+    The representative must have a believable and creatively chosen American name. \
     They also must belong to one of the following departments: Support, Sales or Finance.
 
-    There must be at least one representative per department.
+    There must be at least one representative per department. \
+    The following departments already have a representative: {departments}
     """
-    llm_with_structured_output = llm.with_structured_output(list[ServiceRepresentative])
+    llm_with_structured_output = llm.with_structured_output(ServiceRepresentative)
 
     response = llm_with_structured_output.invoke(prompt)
     
@@ -117,6 +119,30 @@ def generate_service_details(llm, customer_info):
 
     return response
 
+def pick_service_representatives(llm, representatives, service_details):
+    prompt = f"""
+    Given a list of service representatives of a company and the details of a service, pick the most adequade representative for the matter.
+
+    ### Representatives
+
+    {representatives}
+
+    ### Service Details
+
+    - Service ID: {service_details.service_id};
+    - Service Date and time: {service_details.date_and_time};
+    - Service Channel: {service_details.service_channel.value};
+    - Service Type: {service_details.service_type.value};
+    - Service Category: {service_details.service_category.value};
+    - Problem description: {service_details.problem_description};
+    - Service Status: {service_details.service_status.value};
+    """
+    llm_with_structured_output = llm.with_structured_output(ServiceRepresentative)
+
+    response = llm_with_structured_output.invoke(prompt)
+
+    return response
+
 def generate_feedback(llm, customer_info, service_details):
     rating = random.choice([1, 2, 3, 4, 5])
     prompt = f"""
@@ -174,11 +200,21 @@ def store_in_json(filename, customer_info, service_details, feedback):
         writer.write(data)
     pass
 
+def representative_to_string(representative):
+    return f"\nRepresentative name: {representative.representative_name}\nRepresentative department: {representative.department.value}\n"
+
 def main():
     llm = get_model_name('gemini', temperature=0.7)
 
-    representatives = generate_service_representatives(llm)
-    print(representatives.values())
+    representatives = []
+    departments = set([])
+    for i in range(4):
+        departments_txt = ' '.join(departments)
+        curr = generate_service_representative(llm, departments_txt)
+        departments.add(curr.department.value)
+        representatives.append(curr)
+    representatives_txt = ''.join(map(representative_to_string, representatives))
+    print(representatives_txt)
 
     customer_info = generate_customer_info(llm)
     print(customer_info)
@@ -186,10 +222,13 @@ def main():
     service_details = generate_service_details(llm, customer_info)
     print(service_details)
 
+    representative = pick_service_representatives(llm, representatives_txt, service_details)
+    print(representative)
+
     feedback = generate_feedback(llm, customer_info, service_details)
     print(feedback)
 
-    filename = "output.jsonl"
+    filename = "data/output.jsonl"
 
     store_in_json(filename, customer_info, service_details, feedback)
 
@@ -203,7 +242,7 @@ def main():
     df = pd.DataFrame(records)
 
     # Save to Excel
-    df.to_excel("output.xlsx", index=False)
+    df.to_excel("data/output.xlsx", index=False)
 
 if __name__ == "__main__":
     main()
