@@ -178,7 +178,7 @@ def main():
     llm = get_model_name('gemini', temperature=0.7)
 
     representatives = generate_service_representatives(llm)
-    print(representatives)
+    print(representatives.values())
 
     customer_info = generate_customer_info(llm)
     print(customer_info)
