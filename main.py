@@ -32,6 +32,20 @@ def get_model_name(model_name, temperature=0):
         )
     return llm
 
+def generate_service_representatives(llm):
+    prompt = """
+    Generate information about 4 representatives in a service company. \
+    Each representative must have a believable and creatively chosen American name. \
+    They also must belong to one of the following departments: Support, Sales or Finance.
+
+    There must be at least one representative per department.
+    """
+    llm_with_structured_output = llm.with_structured_output(list[ServiceRepresentative])
+
+    response = llm_with_structured_output.invoke(prompt)
+    
+    return response
+
 def generate_customer_info(llm):
     customer_type = "Individual" if random.randrange(1, 10) < 7 else "Business"
     print(customer_type)
@@ -162,6 +176,10 @@ def store_in_json(filename, customer_info, service_details, feedback):
 
 def main():
     llm = get_model_name('gemini', temperature=0.7)
+
+    representatives = generate_service_representatives(llm)
+    print(representatives)
+
     customer_info = generate_customer_info(llm)
     print(customer_info)
 
