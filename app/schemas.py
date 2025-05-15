@@ -45,7 +45,7 @@ class ServiceDetails(BaseModel):
     date_and_time : Annotated[str, Field(..., description = "Date and time of the service")]
     service_channel : Annotated[ServiceChannel, Field(..., description = "Service Channel. Either Email, Chatbot, WhatsApp, Phone or Others")]
     service_type : Annotated[ServiceType, Field(..., description = "Service Type. Either Technical Support, Complaint, Inquiry or Quote Request")]
-    problem_description : Annotated[str, Field(..., descrition = "Problem/Request description", max_length=300)]
+    problem_description : Annotated[str, Field(..., descrition = "Problem/Request description")]
     service_category : Annotated[ServiceCategory, Field(..., description = "Service Category. Either Financial, Technical or Commercial")]
     service_status : Annotated[ServiceStatus, Field(..., description = "Service Status. Open, In progress, Resolved, Pending or Cancelled")]
 
