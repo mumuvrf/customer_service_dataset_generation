@@ -64,9 +64,9 @@ async def main():
         departments.add(curr.department.value)
         representatives.append(curr)
 
-    semaphore = asyncio.Semaphore(5) # Limit to 5 concurrent tasks
+    semaphore = asyncio.Semaphore(20) # Limit to 5 concurrent tasks
     tasks = []
-    for i in range(10): # Create 10 tasks
+    for i in range(500): # Create 10 tasks
         tasks.append(run_generate_entry_wrapper(semaphore, llm, representatives))
 
     await tqdm.asyncio.tqdm.gather(*tasks) # Run all tasks concurrently

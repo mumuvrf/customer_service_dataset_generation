@@ -25,7 +25,7 @@ def get_model_name(model_name, temperature=0):
         if "OPENAI_API_KEY" not in os.environ: # https://platform.openai.com
             os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter your OpenAI API key: ")
         llm = ChatOpenAI(
-            model="gpt-4.1-nano",
+            model="gpt-4o-mini",
             temperature=temperature,
         )
     return llm
@@ -49,7 +49,8 @@ def generate_service_representative(llm, departments):
         raise
 
 async def generate_customer_info(llm):
-    customer_type = "Individual" if random.randrange(1, 10) < 7 else "Business"
+    gender = random.choice(['Male', 'Female'])
+    customer_type = gender+"Individual" if random.randrange(1, 10) < 7 else "Business"
     prompt = f"""
     Generate a detailed and imaginative profile for a fictional customer in the United States.
 
